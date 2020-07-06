@@ -10,26 +10,22 @@ static QState Idle(KeyMonitor * const me, QEvt const * const e);
 
 ////////////////////////////////////
 
-/**
- * Initializes input window.
- */
-static WINDOW* configure() {
-	WINDOW* win = newwin(1,1,0,0); // top left
-	keypad(win, TRUE);
-	nodelay(win, TRUE);
-
-	wrefresh(win); // puts this below other windows
-	return win;
-}
-
-/////////////////////////////////////////
-
 static void post_KEY_DETECT_SIG(int key) {
 	KeyEvt* e = Q_NEW(KeyEvt, KEY_DETECT_SIG);
 	if (e) {
 		e->key = key;
 		QACTIVE_POST(AO_BindingHandler, (QEvt *)e, AO_KeyMonitor);
 	}
+}
+
+/////////////////////////////////////////
+
+/**
+ * Input initialization.
+ */
+static void configure() {
+	keypad(stdscr, TRUE);
+	nodelay(stdscr, TRUE); // don't hang on getch
 }
 
 //////////////////////////////////////////
@@ -74,12 +70,12 @@ static QState KeyMonitor_initial(KeyMonitor * const me, QEvt const * const e) {
 static QState Idle(KeyMonitor * const me, QEvt const * const e) {
 	switch (e->sig) {
 	case ENGINE_START_SIG: {
-		me->win = configure();
+		configure();
 		QTimeEvt_armX(&me->keyScanEvt, 1, 1);
 		return Q_HANDLED();
 	}
 	case KEY_SCAN_SIG: {
-		int key = wgetch(me->win);
+		int key = getch();
 		if (key != ERR) {
 			post_KEY_DETECT_SIG(key);
 		}

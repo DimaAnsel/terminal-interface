@@ -12,10 +12,20 @@ static QState Idle(ScreenPainter * const me, QEvt const * const e);
 
 ////////////////////////////////////
 
+
+static void post_REFRESH_SCREEN() {
+	QEvt* e = Q_NEW(QEvt, REFRESH_SCREEN_SIG);
+	if (e) {
+		QACTIVE_POST(AO_ScreenPainter, e, AO_ScreenPainter);
+	}
+}
+
+/////////////////////////////////////////
+
 /**
  * Outlines a window.
  */
-static void outline(WINDOW* win, int height, int width) {
+static void outline(int height, int width) {
 	int dim = (width > height) ? width : height;
 	char tempStr[dim + 1];
 
@@ -24,22 +34,12 @@ static void outline(WINDOW* win, int height, int width) {
 	}
 	tempStr[dim] = '\0';
 
-	mvwaddstr(win, 0, 0, tempStr); // top row
-	mvwaddstr(win, height - 1, 0, tempStr); // bottom row
+	mvaddstr(0, 0, tempStr); // top row
+	mvaddstr(height - 1, 0, tempStr); // bottom row
 
 	for (int i = 1; i < height - 1; i++) {
-		mvwaddch(win, i, 0, '|');
-		mvwaddch(win, i, width - 1, '|');
-	}
-}
-
-/////////////////////////////////////////
-
-static void post_REFRESH_SCREEN(WINDOW* win) {
-	ScreenEvt* e = Q_NEW(ScreenEvt, REFRESH_SCREEN_SIG);
-	if (e) {
-		e->win = win;
-		QACTIVE_POST(AO_ScreenPainter, (QEvt*) e, NULL);
+		mvaddch(i, 0, '|');
+		mvaddch(i, width - 1, '|');
 	}
 }
 
@@ -83,9 +83,8 @@ static QState ScreenPainter_initial(ScreenPainter * const me, QEvt const * const
 static QState Setup(ScreenPainter * const me, QEvt const * const e) {
 	switch (e->sig) {
 	case ENGINE_START_SIG: {
-		me->win = newwin(MAX_SCREEN_HEIGHT, MAX_SCREEN_WIDTH, 0, 0);
-		outline(me->win, MAX_SCREEN_HEIGHT, MAX_SCREEN_WIDTH);
-		post_REFRESH_SCREEN(me->win);
+		outline(MAX_SCREEN_HEIGHT, MAX_SCREEN_WIDTH);
+		post_REFRESH_SCREEN();
 		return Q_TRAN(&Idle);
 	}
 	}
@@ -99,12 +98,11 @@ static QState Idle(ScreenPainter * const me, QEvt const * const e) {
 	switch (e->sig) {
 	case PAINT_DIRECT_SIG: {
 		PaintEvt* paintEvt = (PaintEvt *)e;
-		mvwaddstr(me->win, paintEvt->yAnchor, paintEvt->xAnchor, paintEvt->canvas);
-		post_REFRESH_SCREEN(me->win);
+		mvaddstr(paintEvt->yAnchor, paintEvt->xAnchor, paintEvt->canvas);
 		return Q_HANDLED();
 	}
 	case REFRESH_SCREEN_SIG: {
-		wrefresh(((ScreenEvt*)e)->win);
+		refresh();
 		return Q_HANDLED();
 	}
 	}

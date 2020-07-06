@@ -94,14 +94,6 @@ typedef struct {
 } SectionCfgEvt;
 
 /**
- * Screen event.
- */
-typedef struct {
-	QEvt	evt;
-	WINDOW* win;
-} ScreenEvt;
-
-/**
  * Key event.
  */
 typedef struct {
@@ -129,7 +121,6 @@ typedef struct {
  */
 typedef union {
 	QEvt 	  e1;
-	ScreenEvt e2;
 	KeyEvt	  e3;
 } TinyEvt;
 
@@ -163,8 +154,6 @@ typedef struct {
 
 	/**Key scanner.*/
 	QTimeEvt keyScanEvt;
-
-	WINDOW* win;
 } KeyMonitor;
 AO_DEF(KeyMonitor);
 
@@ -185,9 +174,6 @@ AO_DEF(BindingHandler);
 typedef struct {
 	/**State machine.*/
 	QActive super;
-
-	/***/
-	WINDOW* win;
 } ScreenPainter;
 AO_DEF(ScreenPainter);
 

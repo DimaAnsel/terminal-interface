@@ -17,11 +17,12 @@ static void configure_screen() {
 	initscr();
 	cbreak();
 	noecho();
-	set_escdelay(0);
+	set_escdelay(0); // don't pause on ESC
+	curs_set(0); // hide cursor
 }
 
 /**
- * Cleans up curses settings.
+ * Cleans up curses on exit.
  */
 static void teardown_screen() {
 	endwin();

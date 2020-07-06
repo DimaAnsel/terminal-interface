@@ -50,4 +50,8 @@ Temporary Items
 lib/
 doxygen/
 build/
+debug.log
 */debug.log
+.settings/
+.cproject
+.project

@@ -29,6 +29,13 @@ static void post_PAINT_DIRECT(uint16_t y, uint16_t x, char canvas[MAX_SCREEN_WID
 	}
 }
 
+static void post_REFRESH_SCREEN() {
+	QEvt* e = Q_NEW(QEvt, REFRESH_SCREEN_SIG);
+	if (e) {
+		QACTIVE_POST(AO_ScreenPainter, e, AO_RenderEngine);
+	}
+}
+
 /////////////////////////////////////////
 
 static void create_section(RenderEngine* me, RenderSection* section) {
@@ -111,6 +118,7 @@ static QState Idle(RenderEngine * const me, QEvt const * const e) {
 		char canvas[MAX_SCREEN_WIDTH];
 		snprintf(canvas, MAX_SCREEN_WIDTH, "%d", key);
 		post_PAINT_DIRECT(1, 1, canvas);
+		post_REFRESH_SCREEN();
 		return Q_HANDLED();
 	}
 	}
