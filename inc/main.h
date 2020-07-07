@@ -11,9 +11,13 @@
 #include <stdlib.h> /* for exit() */
 #include <curses.h>
 
+#include "render_artist.h"
 #include "screen_painter.h"
 #include "utilities.h"
 
+/**
+ * Template for active object structures.
+ */
 #define AO_DEF(NAME) \
 		void NAME##_ctor(void);\
 		QActive * const AO_##NAME
@@ -37,7 +41,7 @@
  */
 typedef enum {
 	AO_ENGINE = 1,		///< @see Engine
-	AO_RENDER_ENGINE,	///< @see RenderEngine
+	AO_RENDER_ARTIST,	///< @see RenderArtist
 	AO_SCREEN_PAINTER,	///< @see ScreenPainter
 	AO_BINDING_HANDLER,	///< @see BindingHandler
 	AO_KEY_MONITOR,		///< @see KeyMonitor
@@ -50,20 +54,19 @@ typedef enum {
 
 /**
  * @enum Signals
- * unintelligible screaming
+ * Signals passed between active objects.
  */
 typedef enum {
-	// Subscribe sigs
-	PLACEHOLDER_SIG = Q_USER_SIG, ///< Placeholder
-	ENGINE_START_SIG,	///< Engine has set up the screen
+	// Subscriptions
+	ENGINE_START_SIG = Q_USER_SIG, ///< Program has initialized the screen
 	ENGINE_END_SIG,		///< Program is ending
-	KEY_DETECT_SIG,		///< Key was detected (posted from {@link KeyMonitor}, published from {@link BindingHandler}
+	KEY_DETECT_SIG,		///< Key was detected (posted from KeyMonitor, published from BindingHandler)
 	MAX_SUBSCRIBE_SIG,	///< Must be after all subscribe sigs
 
-	// Engine sigs
+	// Engine
 	TIMEOUT_SIG,		///< Timeout sig
 
-	// Renderer
+	// RenderArtist
 	CREATE_SECTION_SIG,	///< Creates a new section
 	DELETE_SECTION_SIG,	///< Deletes a section
 	CONFIG_SECTION_SIG,	///< Reconfigures a section
@@ -80,8 +83,8 @@ typedef enum {
 } Signals;
 
 //////////////////////////////
-/// @defgroup Events
-///		State machine events.
+/// @defgroup Events Event types
+///	State machine events.
 /// @{
 //////////////////////////////
 
@@ -89,15 +92,19 @@ typedef enum {
  * Section configuration event.
  */
 typedef struct {
+	/**Super*/
 	QEvt	 	  evt;
-	RenderSection section;
+
+	RenderSection section; ///< Section configuration
 } SectionCfgEvt;
 
 /**
  * Key event.
  */
 typedef struct {
+	/**Super*/
 	QEvt	evt;
+
 	int		key; ///< Numeric key value
 } KeyEvt;
 
@@ -105,13 +112,14 @@ typedef struct {
  * Paint event.
  */
 typedef struct {
+	/**Super*/
 	QEvt	 evt;
 
-	uint16_t xAnchor; ///< Horizontal anchor (from left)
-	uint16_t yAnchor; ///< Vertical anchor (from top)
-	uint16_t xDim;	  ///< Horizontal size
-	uint16_t yDim;	  ///< Vertical size
-
+	/**Horizontal anchor (from left)*/
+	uint16_t xAnchor;
+	/**Vertical anchor (from top)*/
+	uint16_t yAnchor;
+	/**Line to be painted.*/
 	char canvas[MAX_SCREEN_WIDTH];
 } PaintEvt;
 
@@ -120,24 +128,30 @@ typedef struct {
  * Event class for events with a single primitive.
  */
 typedef union {
-	QEvt 	  e1;
-	KeyEvt	  e3;
+	QEvt 	  e1; ///< Smallest event
+	//! @{
+	KeyEvt	  e2;
+	//! @}
 } TinyEvt;
 
 /**
  * Event class for events with a few primitives.
  */
 typedef union {
-	TinyEvt		  e1;
+	TinyEvt		  e1; ///< Next smallest event type
+	//! @{
 	SectionCfgEvt e2;
+	//! @}
 } SmallEvt;
 
 /**
  * Event class for medium-sized events.
  */
 typedef union {
-	SmallEvt e1;
+	SmallEvt e1; ///< Next smallest event type
+	//! @{
 	PaintEvt e2;
+	//! @}
 } MediumEvt;
 
 //////////////////////////////
@@ -155,7 +169,9 @@ typedef struct {
 	/**Key scanner.*/
 	QTimeEvt keyScanEvt;
 } KeyMonitor;
+//! @{
 AO_DEF(KeyMonitor);
+//! @}
 
 /**
  * @struct BindingHandler
@@ -165,30 +181,36 @@ typedef struct {
 	/**State machine.*/
 	QActive super;
 } BindingHandler;
+//! @{
 AO_DEF(BindingHandler);
+//! @}
 
 /**
  * @struct ScreenPainter
- * Screen painter.
+ * Low-level screen drawing logic.
  */
 typedef struct {
 	/**State machine.*/
 	QActive super;
 } ScreenPainter;
+//! @{
 AO_DEF(ScreenPainter);
+//! @}
 
 /**
- * @struct RenderEngine
- * Rendering engine.
+ * @struct RenderArtist
+ * High-level screen drawing logic.
  */
 typedef struct {
 	/**State machine.*/
 	QActive super;
 
 	/**Sections.*/
-	RenderSection sections[NUM_SECTIONS];
-} RenderEngine;
-AO_DEF(RenderEngine);
+	RenderSection layers[NUM_LAYERS];
+} RenderArtist;
+//! @{
+AO_DEF(RenderArtist);
+//! @}
 
 /**
  * @ingroup Fwk
@@ -199,7 +221,9 @@ typedef struct {
 	/**State machine.*/
 	QActive super;
 } FileSystem;
+//! @{
 AO_DEF(FileSystem);
+//! @}
 
 /**
  * @struct FileParser
@@ -209,7 +233,9 @@ typedef struct {
 	/**State machine.*/
 	QActive super;
 } FileParser;
+//! @{
 AO_DEF(FileParser);
+//! @}
 
 /**
  * @struct FileFramer
@@ -219,7 +245,9 @@ typedef struct {
 	/**State machine.*/
 	QActive super;
 } FileFramer;
+//! @{
 AO_DEF(FileFramer);
+//! @}
 
 /**
  * @struct SaveGenerator
@@ -229,7 +257,9 @@ typedef struct {
 	/**State machine.*/
 	QActive super;
 } SaveGenerator;
+//! @{
 AO_DEF(SaveGenerator);
+//! @}
 
 /**
  * @struct Engine
@@ -242,7 +272,9 @@ typedef struct {
 	/**Time event.*/
 	QTimeEvt timeEvt;
 } Engine;
+//! @{
 AO_DEF(Engine);
+//! @}
 
 //////////////////////////////
 ///@}

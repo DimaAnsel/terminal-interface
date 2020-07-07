@@ -1,5 +1,5 @@
 /**
- * @file render_engine.c
+ * @file key_monitor.c
  * KeyMonitor, toot toot.
  */
 
@@ -10,6 +10,9 @@ static QState Idle(KeyMonitor * const me, QEvt const * const e);
 
 ////////////////////////////////////
 
+/**
+ * Notifies binding handler that a key was pressed.
+ */
 static void post_KEY_DETECT_SIG(int key) {
 	KeyEvt* e = Q_NEW(KeyEvt, KEY_DETECT_SIG);
 	if (e) {
@@ -29,10 +32,9 @@ static void configure() {
 }
 
 //////////////////////////////////////////
-///
+/// @ingroup Fwk
 /// @defgroup AOKeyMonitor Active Object - KeyMonitor
-///		States for key monitor active object.
-///
+///	States for key monitor active object.
 /// @{
 /////////////////////////////////////////
 

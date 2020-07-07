@@ -73,7 +73,7 @@ endif
 # C source files...
 C_SRCS := \
 	engine.c \
-	render_engine.c \
+	render_artist.c \
 	screen_painter.c \
 	key_monitor.c \
 	binding_handler.c \

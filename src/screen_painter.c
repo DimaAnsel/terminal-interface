@@ -12,7 +12,9 @@ static QState Idle(ScreenPainter * const me, QEvt const * const e);
 
 ////////////////////////////////////
 
-
+/**
+ * Refreshes the screen.
+ */
 static void post_REFRESH_SCREEN() {
 	QEvt* e = Q_NEW(QEvt, REFRESH_SCREEN_SIG);
 	if (e) {
@@ -44,9 +46,9 @@ static void outline(int height, int width) {
 }
 
 //////////////////////////////////////////
-///
+/// @ingroup Fwk
 /// @defgroup AOScreenPainter Active Object - ScreenPainter
-///		States for screen painter active object.
+///	States for screen painter active object.
 ///
 /// @{
 /////////////////////////////////////////

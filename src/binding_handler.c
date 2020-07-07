@@ -1,5 +1,5 @@
 /**
- * @file render_engine.c
+ * @file binding_handler.c
  * BindingHandler, toot toot.
  */
 
@@ -12,6 +12,9 @@ static QState Idle(BindingHandler * const me, QEvt const * const e);
 
 /////////////////////////////////////////
 
+/**
+ * Notifies other objects that a key was pressed.
+ */
 static void publish_KEY_DETECT(int key) {
 	KeyEvt* e = Q_NEW(KeyEvt, KEY_DETECT_SIG);
 	if (e) {
@@ -21,9 +24,9 @@ static void publish_KEY_DETECT(int key) {
 }
 
 //////////////////////////////////////////
-///
+/// @ingroup Fwk
 /// @defgroup AOBindingHandler Active Object - BindingHandler
-///		States for binding handler active object.
+///	States for binding handler active object.
 ///
 /// @{
 /////////////////////////////////////////

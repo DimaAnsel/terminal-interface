@@ -1,34 +1,48 @@
 /**
  * @file main.c
- * Main loop
+ * This is where the spell begins.
  */
 
 #include "main.h"
 
 Q_DEFINE_THIS_FILE
 
+/// @ingroup Fwk
+/// @{
+/**
+ * Crash handler.
+ */
 void Q_onAssert(char const * const module, int loc) {
+	endwin(); // clean up curses
 	fprintf(stderr, "Assertion failed in %s:%d", module, loc);
 	exit(-1);
 }
+//! @{
 void QF_onStartup(void) {}
 void QF_onCleanup(void) {}
+//! @}
+/**
+ * Perform the QF clock tick processing.
+ */
 void QF_onClockTick(void) {
-	QF_TICK_X(0U, (void *)0);  /* perform the QF clock tick processing */
+	QF_TICK_X(0U, (void *)0);
 }
 
 static QF_MPOOL_EL(TinyEvt)  l_tinyPoolSto[128];	///< Tiny event pool
 static QF_MPOOL_EL(SmallEvt) l_smallPoolSto[64];	///< Small event pool
 static QF_MPOOL_EL(MediumEvt) l_mediumPoolSto[32];	///< Medium event pool
 
-static QEvt const *l_engine_queueSto[64];
-static QEvt const *l_renderEngine_queueSto[64];
-static QEvt const *l_screenPainter_queueSto[64];
-static QEvt const *l_keyMonitor_queueSto[64];
-static QEvt const *l_bindingHandler_queueSto[64];
+static QEvt const *l_engine_queueSto[64];			///< Engine event pool
+static QEvt const *l_renderArtist_queueSto[64];		///< RenderArtist event pool
+static QEvt const *l_screenPainter_queueSto[64];	///< ScreenPainter event pool
+static QEvt const *l_keyMonitor_queueSto[64];		///< KeyMonitor event pool
+static QEvt const *l_bindingHandler_queueSto[64];	///< BindingHandler event pool
 
-static QSubscrList l_subscrSto[MAX_SUBSCRIBE_SIG];
+static QSubscrList l_subscrSto[MAX_SUBSCRIBE_SIG];	///< Subscription manager
 
+/**
+ * Initializes framework and starts loop.
+ */
 int main() {
 	clear_log();
 
@@ -36,7 +50,7 @@ int main() {
 
 	// constructors
 	Engine_ctor();
-	RenderEngine_ctor();
+	RenderArtist_ctor();
 	ScreenPainter_ctor();
 	KeyMonitor_ctor();
 	BindingHandler_ctor();
@@ -71,9 +85,9 @@ int main() {
 			l_screenPainter_queueSto, Q_DIM(l_screenPainter_queueSto),
 			(void *)0, 0U, /* no stack */
 			(QEvt *)0);    /* no initialization event */
-	QACTIVE_START(AO_RenderEngine,
-			AO_RENDER_ENGINE, /* priority */
-			l_renderEngine_queueSto, Q_DIM(l_renderEngine_queueSto),
+	QACTIVE_START(AO_RenderArtist,
+			AO_RENDER_ARTIST, /* priority */
+			l_renderArtist_queueSto, Q_DIM(l_renderArtist_queueSto),
 			(void *)0, 0U, /* no stack */
 			(QEvt *)0);    /* no initialization event */
 
@@ -86,3 +100,4 @@ int main() {
 
 	return QF_run(); /* run the QF application */
 }
+/// @}

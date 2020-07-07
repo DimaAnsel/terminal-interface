@@ -5,7 +5,7 @@
 #ifndef INC_UTILITIES_H_
 #define INC_UTILITIES_H_
 
-
+/**File used for debug output.*/
 #define DEBUG_LOG_FILE "debug.log"
 
 void clear_log();

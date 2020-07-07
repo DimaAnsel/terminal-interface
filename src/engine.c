@@ -30,13 +30,19 @@ static void teardown_screen() {
 
 /////////////////////////////////////////
 
+/**
+ * Creates a new section in a layer.
+ */
 static void post_CREATE_SECTION() {
 	SectionCfgEvt* e = Q_NEW(SectionCfgEvt, CREATE_SECTION_SIG);
 	if (e) {
-		QACTIVE_POST(AO_RenderEngine, (QEvt*) e, NULL);
+		QACTIVE_POST(AO_RenderArtist, (QEvt*) e, NULL);
 	}
 }
 
+/**
+ * Notifies other objects that essential systems are initialized.
+ */
 static void publish_ENGINE_START() {
 	QEvt* e = Q_NEW(QEvt, ENGINE_START_SIG);
 	if (e) {
@@ -44,6 +50,9 @@ static void publish_ENGINE_START() {
 	}
 }
 
+/**
+ * Notifies other objects that system is going down.
+ */
 static void publish_ENGINE_END() {
 	QEvt* e = Q_NEW(QEvt, ENGINE_END_SIG);
 	if (e) {
@@ -52,10 +61,9 @@ static void publish_ENGINE_END() {
 }
 
 //////////////////////////////////////////
-///
+/// @ingroup Fwk
 /// @defgroup AOEngine Active Object - Engine
-///		States for engine active object.
-///
+///	States for engine active object.
 /// @{
 /////////////////////////////////////////
 
@@ -89,6 +97,9 @@ static QState Engine_initial(Engine * const me, QEvt const * const e) {
 	return Q_TRAN(&Idle);
 }
 
+/**
+ * Idle state.
+ */
 static QState Idle(Engine * const me, QEvt const * const e) {
 	switch (e->sig) {
 	case Q_ENTRY_SIG: {
