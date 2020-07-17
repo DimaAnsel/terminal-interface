@@ -206,7 +206,7 @@ typedef struct {
 	QActive super;
 
 	/**Sections.*/
-	RenderSection layers[NUM_LAYERS];
+	RenderLayer layers[NUM_LAYERS];
 } RenderArtist;
 //! @{
 AO_DEF(RenderArtist);
