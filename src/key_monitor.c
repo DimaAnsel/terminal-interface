@@ -10,8 +10,17 @@ static QState Idle(KeyMonitor * const me, QEvt const * const e);
 
 ////////////////////////////////////
 
+//////////////////////////////////////////
+/// @ingroup Fwk
+/// @defgroup AOKeyMonitor Active Object - KeyMonitor
+///	States for key monitor active object.
+/// @{
+/////////////////////////////////////////
+
 /**
  * Notifies binding handler that a key was pressed.
+ *
+ * @param[in] key Key ID
  */
 static void post_KEY_DETECT_SIG(int key) {
 	KeyEvt* e = Q_NEW(KeyEvt, KEY_DETECT_SIG);
@@ -21,6 +30,7 @@ static void post_KEY_DETECT_SIG(int key) {
 	}
 }
 
+/// @}
 /////////////////////////////////////////
 
 /**
@@ -31,12 +41,10 @@ static void configure() {
 	nodelay(stdscr, TRUE); // don't hang on getch
 }
 
-//////////////////////////////////////////
-/// @ingroup Fwk
-/// @defgroup AOKeyMonitor Active Object - KeyMonitor
-///	States for key monitor active object.
-/// @{
+
 /////////////////////////////////////////
+/// @addtogroup AOKeyMonitor
+/// @{
 
 /**
  * Local reference.
@@ -71,11 +79,13 @@ static QState KeyMonitor_initial(KeyMonitor * const me, QEvt const * const e) {
  */
 static QState Idle(KeyMonitor * const me, QEvt const * const e) {
 	switch (e->sig) {
+	/// - @ref ENGINE_START_SIG
 	case ENGINE_START_SIG: {
 		configure();
 		QTimeEvt_armX(&me->keyScanEvt, 1, 1);
 		return Q_HANDLED();
 	}
+	/// - @ref KEY_SCAN_SIG
 	case KEY_SCAN_SIG: {
 		int key = getch();
 		if (key != ERR) {
@@ -88,3 +98,4 @@ static QState Idle(KeyMonitor * const me, QEvt const * const e) {
 }
 
 /// @}
+/////////////////////////////////////////

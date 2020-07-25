@@ -71,9 +71,9 @@ typedef enum {
 	DELETE_SECTION_SIG,	///< Deletes a section
 	CONFIG_SECTION_SIG,	///< Reconfigures a section
 	PAINT_SECTION_SIG,	///< Paints a section
+	PAINT_LINE_SIG,	///< Low-level painting signal
 
 	// ScreenPainter
-	PAINT_DIRECT_SIG,	///< Low-level painting signal
 	REFRESH_SCREEN_SIG,	///< Refreshes screen
 
 	// KeyMonitor
@@ -99,7 +99,7 @@ typedef struct {
 } SectionCfgEvt;
 
 /**
- * Key event.
+ * Keyboard event.
  */
 typedef struct {
 	/**Super*/
@@ -114,6 +114,9 @@ typedef struct {
 typedef struct {
 	/**Super*/
 	QEvt	 evt;
+
+	/**Alphanumeric key used to identify section.*/
+	char	 sectionKey[PAINTER_KEY_LEN];
 
 	/**Horizontal anchor (from left)*/
 	uint16_t xAnchor;

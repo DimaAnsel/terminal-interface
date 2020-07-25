@@ -8,12 +8,18 @@
 static QState BindingHandler_initial(BindingHandler * const me, QEvt const * const e);
 static QState Idle(BindingHandler * const me, QEvt const * const e);
 
-////////////////////////////////////
-
+//////////////////////////////////////////
+/// @ingroup Fwk
+/// @defgroup AOBindingHandler Active Object - BindingHandler
+///	States for binding handler active object.
+///
+/// @{
 /////////////////////////////////////////
 
 /**
  * Notifies other objects that a key was pressed.
+ *
+ * @param[in] key Key ID
  */
 static void publish_KEY_DETECT(int key) {
 	KeyEvt* e = Q_NEW(KeyEvt, KEY_DETECT_SIG);
@@ -22,14 +28,6 @@ static void publish_KEY_DETECT(int key) {
 		QF_PUBLISH((QEvt *)e, AO_BindingHandler);
 	}
 }
-
-//////////////////////////////////////////
-/// @ingroup Fwk
-/// @defgroup AOBindingHandler Active Object - BindingHandler
-///	States for binding handler active object.
-///
-/// @{
-/////////////////////////////////////////
 
 /**
  * Local reference.
@@ -60,6 +58,7 @@ static QState BindingHandler_initial(BindingHandler * const me, QEvt const * con
  */
 static QState Idle(BindingHandler * const me, QEvt const * const e) {
 	switch (e->sig) {
+	/// - @ref KEY_DETECT_SIG
 	case KEY_DETECT_SIG: {
 		int key = ((KeyEvt *)e)->key;
 		publish_KEY_DETECT(key);
@@ -70,3 +69,4 @@ static QState Idle(BindingHandler * const me, QEvt const * const e) {
 }
 
 /// @}
+//////////////////////////////////////////

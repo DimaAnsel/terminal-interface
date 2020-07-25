@@ -48,6 +48,7 @@ static QState ScreenPainter_initial(ScreenPainter * const me, QEvt const * const
  */
 static QState Setup(ScreenPainter * const me, QEvt const * const e) {
 	switch (e->sig) {
+	/// - @ref ENGINE_START_SIG
 	case ENGINE_START_SIG: {
 		return Q_TRAN(&Idle);
 	}
@@ -60,11 +61,13 @@ static QState Setup(ScreenPainter * const me, QEvt const * const e) {
  */
 static QState Idle(ScreenPainter * const me, QEvt const * const e) {
 	switch (e->sig) {
-	case PAINT_DIRECT_SIG: {
+	/// - @ref PAINT_LINE_SIG
+	case PAINT_LINE_SIG: {
 		PaintEvt* paintEvt = (PaintEvt *)e;
 		mvaddstr(paintEvt->yAnchor, paintEvt->xAnchor, paintEvt->canvas);
 		return Q_HANDLED();
 	}
+	/// - @ref REFRESH_SCREEN_SIG
 	case REFRESH_SCREEN_SIG: {
 		refresh();
 		return Q_HANDLED();
@@ -74,3 +77,4 @@ static QState Idle(ScreenPainter * const me, QEvt const * const e) {
 }
 
 /// @}
+//////////////////////////////////////////

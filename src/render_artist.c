@@ -13,21 +13,21 @@ static QState Idle(RenderArtist * const me, QEvt const * const e);
 //////////////////////////////////////////
 /// @ingroup Fwk
 /// @defgroup AORenderArtist Active Object - RenderArtist
-/// States for render engine active object.
+/// States for render artist active object.
 /// @{
 ////////////////////////////////////
 
 /**
  * Paints a single line to the screen.
  *
- * @ref PAINT_DIRECT_SIG, @ref AOScreenPainter
+ * @ref PAINT_LINE_SIG, @ref AOScreenPainter
  *
  * @param[in] yAnchor Vertical anchor (from top)
  * @param[in] xAnchor Horizontal anchor (from left)
  * @param[in] artwork String to draw
  */
-static void post_PAINT_DIRECT(uint16_t yAnchor, uint16_t xAnchor, char* artwork) {
-	PaintEvt* e = Q_NEW(PaintEvt, PAINT_DIRECT_SIG);
+static void post_PAINT_LINE(uint16_t yAnchor, uint16_t xAnchor, char* artwork) {
+	PaintEvt* e = Q_NEW(PaintEvt, PAINT_LINE_SIG);
 	if (e) {
 		e->yAnchor = yAnchor;
 		e->xAnchor = xAnchor;
@@ -147,15 +147,34 @@ static void create_section(RenderLayer* layer, RenderSection* section) {
 	draw_blank_section(layer, leftEdge, topEdge, rightEdge, botEdge);
 
 	for (int row = topEdge; row <= botEdge; row++) {
-		post_PAINT_DIRECT(row, leftEdge, &layer->artwork[row][leftEdge]);
+		post_PAINT_LINE(row, leftEdge, &layer->artwork[row][leftEdge]);
 	}
 	post_REFRESH_SCREEN();
+}
+
+/**
+ * Looks up a section by its key.
+ *
+ * @param[in] layer		 Layer to search
+ * @param[in] sectionKey Section key to find
+ *
+ * @returns Pointer to section, or NULL on failure
+ */
+static RenderSection* get_section(RenderLayer* layer, char* sectionKey) {
+	RenderSection* ret = NULL;
+	for (int i = 0; i < SECTIONS_PER_LAYER; i++) {
+		if (layer->sections[i].key[0] == '\0') { break; }
+		if (!strncmp(layer->sections[i].key, sectionKey, PAINTER_KEY_LEN)) {
+			ret = &layer->sections[i];
+			break;
+		}
+	}
+	return ret;
 }
 
 //////////////////////////////////////////
 /// @addtogroup AORenderArtist
 /// @{
-//////////////////////////////////////////
 
 /**
  * Local reference.
@@ -182,8 +201,6 @@ void RenderArtist_ctor(void) {
 static QState RenderArtist_initial(RenderArtist * const me, QEvt const * const e) {
 	(void)e; /* unused parameter */
 
-	QActive_subscribe((QActive*) me, KEY_DETECT_SIG);
-
 	return Q_TRAN(&Idle);
 }
 
@@ -192,16 +209,22 @@ static QState RenderArtist_initial(RenderArtist * const me, QEvt const * const e
  */
 static QState Idle(RenderArtist * const me, QEvt const * const e) {
 	switch (e->sig) {
+	/// - @ref CREATE_SECTION_SIG
 	case CREATE_SECTION_SIG: {
 		create_section(&me->layers[0], &((SectionCfgEvt *)e)->section);
 		return Q_HANDLED();
 	}
-	case KEY_DETECT_SIG: {
-		int key = ((KeyEvt *)e)->key;
-		char canvas[MAX_SCREEN_WIDTH];
-		snprintf(canvas, MAX_SCREEN_WIDTH, "%d", key);
-		post_PAINT_DIRECT(1, 1, canvas);
-		post_REFRESH_SCREEN();
+	/// - @ref PAINT_LINE_SIG
+	case PAINT_LINE_SIG: {
+		PaintEvt* paintEvt = ((PaintEvt *)e);
+		RenderSection* section = get_section(&me->layers[0], paintEvt->sectionKey);
+		if (section != NULL) {
+			paintEvt->canvas[section->xDim] = '\0';
+			post_PAINT_LINE(section->yAnchor + paintEvt->yAnchor,
+							section->xAnchor + paintEvt->xAnchor,
+							paintEvt->canvas);
+			post_REFRESH_SCREEN();
+		}
 		return Q_HANDLED();
 	}
 	}
