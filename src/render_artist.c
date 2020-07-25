@@ -172,6 +172,25 @@ static RenderSection* get_section(RenderLayer* layer, char* sectionKey) {
 	return ret;
 }
 
+/**
+ * Draws a single line in a section.
+ *
+ * @param[in,out] layer Layer to be updated
+ * @param[in]	  e		Paint event
+ */
+static void draw_section_line(RenderLayer* layer, PaintEvt* e) {
+	RenderSection* section = get_section(layer, e->sectionKey);
+	if (section == NULL) { return; }
+
+	int yAnchor = section->yAnchor + e->yAnchor;
+	int xAnchor = section->xAnchor + e->xAnchor;
+	int size = strnlen(e->canvas, section->xDim);
+	memcpy(&layer->artwork[yAnchor][xAnchor], e->canvas, size * sizeof(char));
+
+	post_PAINT_LINE(yAnchor, xAnchor, &layer->artwork[yAnchor][xAnchor]);
+	post_REFRESH_SCREEN();
+}
+
 //////////////////////////////////////////
 /// @addtogroup AORenderArtist
 /// @{
@@ -216,15 +235,7 @@ static QState Idle(RenderArtist * const me, QEvt const * const e) {
 	}
 	/// - @ref PAINT_LINE_SIG
 	case PAINT_LINE_SIG: {
-		PaintEvt* paintEvt = ((PaintEvt *)e);
-		RenderSection* section = get_section(&me->layers[0], paintEvt->sectionKey);
-		if (section != NULL) {
-			paintEvt->canvas[section->xDim] = '\0';
-			post_PAINT_LINE(section->yAnchor + paintEvt->yAnchor,
-							section->xAnchor + paintEvt->xAnchor,
-							paintEvt->canvas);
-			post_REFRESH_SCREEN();
-		}
+		draw_section_line(&me->layers[0], ((PaintEvt *)e));
 		return Q_HANDLED();
 	}
 	}
